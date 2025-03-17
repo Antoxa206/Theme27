@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа 27</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .gallery img { display: block; margin: 20px 0; width: 300px; height: 200px; background: #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Лабораторная работа 27</h1>
+    <p>Пример реализации throttle, debounce и lazy load изображений.</p>
+    
+    <h2>Поиск</h2>
+    <input type="text" id="search" placeholder="Введите текст...">
+    
+    <h2>Галерея изображений (Lazy Load)</h2>
+    <div class="gallery">
+        <img data-src="image1.jpg" alt="Изображение 1">
+        <img data-src="image2.jpg" alt="Изображение 2">
+       
+    </div>
+    
+    <script>
+        // 1. Throttle для прокрутки страницы
+        function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+            }
+          }
+        }
+
+        window.addEventListener('scroll', throttle(() => {
+            console.log(`Прокручено: ${window.scrollY}px`);
+        }, 300));
+
+        // 2. Debounce для поиска
+        function debounce(func, delay) {
+            let timer;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(context, args), delay);
+            }
+        }
+
+        const searchInput = document.querySelector('#search');
+        searchInput.addEventListener('input', debounce(() => {
+            console.log(`Поиск: ${searchInput.value}`);
+        }, 500));
+
+        // 3. Lazy Load изображений через Intersection Observer
+        const images = document.querySelectorAll('img[data-src]');
+        const lazyload = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.onload = () => img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            });
+        };
+
+        const imgObserver = new IntersectionObserver(lazyload, {
+            rootMargin: '0px 0px 50px 0px',
+            threshold: 0.1
+        });
+
+        images.forEach(img => imgObserver.observe(img));
+    </script>
+</body>
+</html>
